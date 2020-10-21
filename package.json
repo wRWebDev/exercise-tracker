@@ -1,0 +1,21 @@
+{
+  "name": "exercise-tracker",
+  "version": "1.0.0",
+  "description": "API to submit user exercises to database and recall based on user id",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "author": "wRWebDev",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^2.0.6"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "mongodb": "^3.6.2",
+    "mongoose": "^5.10.9"
+  }
+}
