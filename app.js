@@ -38,35 +38,6 @@ app.get('/', (req, res)=>{
     res.sendFile(pageFiles+'/index.html')
 })
 
-/*
-
-    TODO:
-        [*] Form for testing
-        [*] Add user
-            [*] Create user schema
-            [*] Listen at POST /api/exercise/new-user
-            [*] Write to DB
-            [*] Return username and _id as json
-    FIXME:
-            [*] Don't allow >1 user of same username
-    TODO: 
-        [*] Add exercise
-            - example response: 
-                {
-                    "_id":"5f900e942e4b4c2d4f3f6d20",
-                    "username":"BobbyDazzlersMum",
-                    "date":"Wed Oct 21 2020",
-                    "duration":1,
-                    "description":"Pull Up"
-                }
-            [*] Listen at POST /api/exercise/add
-            [*] Create exercise schema
-            [*] Write to db            
-        FIXME: 
-            [*] Dates
-
-*/
-
 // Define schemas for users and exercises
 const { Schema } = mongoose
 const userSchema = new Schema({
@@ -74,51 +45,89 @@ const userSchema = new Schema({
         type: String, 
         required: true,
         unique: true
-    }
+    },
+    count: {type: Number, default: 0},
+    log: [
+        {
+            _id: false,
+            date: { type: Date, default: Date.now },
+            duration: {type: Number, required: true},
+            description: {type: String, required: true}
+        }
+    ]
 })
 const User = mongoose.model('User', userSchema)
-const exerciseSchema = new Schema({
-    username: String,
-    date: { type: Date, default: Date.now },
-    duration: {type: Number, required: true},
-    description: {type: String, required: true}
-})
-const Exercise = mongoose.model('Exercise', exerciseSchema)
+
+/***************************
+ *                        *
+ *        API CALLS       *
+ *                        *
+/**************************/ 
 
 // Add User
-app.post('/api/exercise/new-user', async(req,res, next)=>{
+app.post('/api/exercise/new-user', async (req,res)=>{
     await User.create({username: req.body.username}, (err,data) =>{
         if(err){res.send('That username is already taken')}
         else{res.json({"username": data.username, "_id": data._id})}
     })
 })
 
-// Add Exercise
-app.post('/api/exercise/add', async(req,res)=>{
-    var { userID, description, duration, date } = req.body
-
-    dateToPost = date !== ''
-        ? (new Date(date)).toString().split(' ').slice(0,4).join(' ')
-        : (new Date).toString().split(' ').slice(0,4).join(' ')
-
-    await User.findById(userID, (err, data)=>{
-        if(err){res.send('Could not locate that user ID.')}
-        else{
-            Exercise.create({
-                username: data.username,
-                date: dateToPost,
-                duration,
-                description
-            }, (err, data)=>{
-                if(err){return console.error(err)}
-                else{res.json(data)}
-            })
-        }
-    })
+// Get array of users
+app.get('/api/exercise/users', (req, res)=>{
+    const userBase = User
+        .find().select('username _id').exec()
+        .then(data=>res.send(data))
+        .catch(err=>console.error(err))
 })
 
+// Add Exercise
+app.post('/api/exercise/add', async (req,res)=>{
+    // Get form data
+    var { userID, description, duration, date } = req.body
+    // Format date 
+    dateToPost = date !== ''
+        ? (new Date(date))
+        : (new Date)
+    const exerciseToAdd = {
+        date: dateToPost,
+        duration,
+        description
+    }
 
+    User.findById(userID)
+        .then(user => {
+            user.log.push(exerciseToAdd)
+            ++user.count
+            user.save()
+                .then(updatedUser => {
+                    res.json({
+                        "_id": updatedUser._id,
+                        "username": updatedUser.username,
+                        "date": dateToPost.toString().split(' ').slice(0,4).join(' '),
+                        "duration": duration,
+                        "description": description
+                    })
+                }).catch(err=>res.send('Could not save'))
+        }).catch(err=>res.send('Invalid userId'))
+})
 
+// Get exercise log
+app.get('/api/exercise/log', (req, res)=>{
+    
+    User.findById(req.query.userId)
+            .select('-__v')
+        .then(user => {
+            console.log(req.query.from, req.query.to)
+            if(req.query.from !== undefined)
+                { user.log = user.log.filter(item => {return item.date >= new Date(req.query.from)}) } 
+            if(req.query.to !== undefined)
+                { user.log = user.log.filter(item => {return item.date <= new Date(req.query.to)}) }
+            if(req.query.limit !== undefined)
+                { user.log = user.log.slice(0, req.query.limit) }
+            res.json(user)
+        }).catch(err => res.send('Invalid userId'))
+
+})
 
 // Listen on port 3000, or as definied in .env
 var listener = app.listen(process.env.PORT || 3000, ()=>{
