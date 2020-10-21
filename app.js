@@ -2,30 +2,30 @@
 require('dotenv').config({path:__dirname+'/.env'})
 
 // Require express for handling requests
-import express, { static } from 'express'
+const express = require('express')
 const app = express()
 
 // Require cors for handling responses
-import cors from 'cors'
+const cors = require('cors')
 app.use(cors())
 
 // Set up directories for files:
 const pageFiles = __dirname+'/views'
 const publicFiles = __dirname+'/public'
-app.use(static(publicFiles))
+app.use(express.static(publicFiles))
 
 // Require mongoose for handling MongoDB
-import { connect, connection } from 'mongoose'
+const mongoose = require('mongoose')
 
 // Connect to database and test connection
-connect(
+mongoose.connect(
     process.env.MONGODB_URI,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true
     }
 )
-const db = connection()
+const db = mongoose.connection
 db.on('error', console.error.bind(console, 'Connection error:'))
 db.once('open', ()=>{console.log('Connected to MongoDB')})
 
