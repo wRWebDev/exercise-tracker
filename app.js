@@ -83,18 +83,22 @@ app.get('/api/exercise/users', (req, res)=>{
 // Add Exercise
 app.post('/api/exercise/add', async (req,res)=>{
     // Get form data
-    var { userID, description, duration, date } = req.body
+    var { userId, description, duration, date } = req.body
     // Format date 
-    dateToPost = date !== ''
-        ? (new Date(date))
-        : (new Date)
+    if(date !== undefined || date !== ''){ // '' from form, undefined from POST
+      dateToPost = (new Date(date))
+    }else{
+      dateToPost = (new Date)
+    }
+    console.log('Test', date, dateToPost)
+
     const exerciseToAdd = {
         date: dateToPost,
         duration,
         description
     }
 
-    User.findById(userID)
+    User.findById(userId)
         .then(user => {
             user.log.push(exerciseToAdd)
             ++user.count
@@ -104,7 +108,7 @@ app.post('/api/exercise/add', async (req,res)=>{
                         "_id": updatedUser._id,
                         "username": updatedUser.username,
                         "date": dateToPost.toString().split(' ').slice(0,4).join(' '),
-                        "duration": duration,
+                        "duration": parseInt(duration), // needs to be an int to pass the test
                         "description": description
                     })
                 }).catch(err=>res.send('Could not save'))
