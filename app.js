@@ -11,6 +11,7 @@ app.use(cors())
 
 // Use body-parser for handling POST submissions
 const bodyParser = require('body-parser')
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Set up directories for files:
 const pageFiles = __dirname+'/views'
@@ -41,12 +42,15 @@ app.get('/', (req, res)=>{
 
     TODO:
         [*] Form for testing
-        [-] Add user
-            [ ] Create user schema
-            [ ] Write to DB
-            [ ] Return username and _id as json
-            [ ] Don't allow >1 user of same username
-        [ ] Add exercise
+        [*] Add user
+            [*] Create user schema
+            [*] Listen at POST /api/exercise/new-user
+            [*] Write to DB
+            [*] Return username and _id as json
+    FIXME:
+            [*] Don't allow >1 user of same username
+    TODO: 
+        [*] Add exercise
             - example response: 
                 {
                     "_id":"5f900e942e4b4c2d4f3f6d20",
@@ -55,11 +59,63 @@ app.get('/', (req, res)=>{
                     "duration":1,
                     "description":"Pull Up"
                 }
-            [ ] Create exercise schema
-            [ ] Write to db            
+            [*] Listen at POST /api/exercise/add
+            [*] Create exercise schema
+            [*] Write to db            
+        FIXME: 
+            [*] Dates
 
 */
 
+// Define schemas for users and exercises
+const { Schema } = mongoose
+const userSchema = new Schema({
+    username: {
+        type: String, 
+        required: true,
+        unique: true
+    }
+})
+const User = mongoose.model('User', userSchema)
+const exerciseSchema = new Schema({
+    username: String,
+    date: { type: Date, default: Date.now },
+    duration: {type: Number, required: true},
+    description: {type: String, required: true}
+})
+const Exercise = mongoose.model('Exercise', exerciseSchema)
+
+// Add User
+app.post('/api/exercise/new-user', async(req,res, next)=>{
+    await User.create({username: req.body.username}, (err,data) =>{
+        if(err){res.send('That username is already taken')}
+        else{res.json({"username": data.username, "_id": data._id})}
+    })
+})
+
+// Add Exercise
+app.post('/api/exercise/add', async(req,res)=>{
+    var { userID, description, duration, date } = req.body
+
+    dateToPost = date !== ''
+        ? (new Date(date)).toString().split(' ').slice(0,4).join(' ')
+        : (new Date).toString().split(' ').slice(0,4).join(' ')
+
+    await User.findById(userID, (err, data)=>{
+        if(err){res.send('Could not locate that user ID.')}
+        else{
+            Exercise.create({
+                username: data.username,
+                date: dateToPost,
+                duration,
+                description
+            }, (err, data)=>{
+                if(err){return console.error(err)}
+                else{res.json(data)}
+            })
+        }
+    })
+})
 
 
 

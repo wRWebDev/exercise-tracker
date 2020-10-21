@@ -13,7 +13,7 @@
     </header>
     <main>
         <section>
-            <form action="/api/exercise/new-user">
+            <form action="/api/exercise/new-user" method="post" enctype="application/x-www-form-urlencoded">
                 <header>Create a New User</header>
                 <label>
                     <span>Username</span>
@@ -23,7 +23,7 @@
             </form>
         </section>
         <section>
-            <form action="/api/exercise/add">
+            <form action="/api/exercise/add" method="post" enctype="application/x-www-form-urlencoded">
                 <header>Log an Exercise</header>
                 <label>
                     <span>User ID</span>
