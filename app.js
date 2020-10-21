@@ -9,6 +9,9 @@ const app = express()
 const cors = require('cors')
 app.use(cors())
 
+// Use body-parser for handling POST submissions
+const bodyParser = require('body-parser')
+
 // Set up directories for files:
 const pageFiles = __dirname+'/views'
 const publicFiles = __dirname+'/public'
@@ -33,6 +36,30 @@ db.once('open', ()=>{console.log('Connected to MongoDB')})
 app.get('/', (req, res)=>{
     res.sendFile(pageFiles+'/index.html')
 })
+
+/*
+
+    TODO:
+        [*] Form for testing
+        [-] Add user
+            [ ] Create user schema
+            [ ] Write to DB
+            [ ] Return username and _id as json
+            [ ] Don't allow >1 user of same username
+        [ ] Add exercise
+            - example response: 
+                {
+                    "_id":"5f900e942e4b4c2d4f3f6d20",
+                    "username":"BobbyDazzlersMum",
+                    "date":"Wed Oct 21 2020",
+                    "duration":1,
+                    "description":"Pull Up"
+                }
+            [ ] Create exercise schema
+            [ ] Write to db            
+
+*/
+
 
 
 

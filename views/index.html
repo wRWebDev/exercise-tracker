@@ -12,7 +12,38 @@
         <h2>Sign up to receive a user ID, which you can then use to track your exercise</h2>
     </header>
     <main>
-        
+        <section>
+            <form action="/api/exercise/new-user">
+                <header>Create a New User</header>
+                <label>
+                    <span>Username</span>
+                    <input type="text" name="username" />
+                </label>
+                <button type="submit">Create Account</button>
+            </form>
+        </section>
+        <section>
+            <form action="/api/exercise/add">
+                <header>Log an Exercise</header>
+                <label>
+                    <span>User ID</span>
+                    <input type="text" name="userID" />
+                </label>
+                <label>
+                    <span>Exercise</span>
+                    <input type="text" name="description" />
+                </label>
+                <label>
+                    <span>Duration</span>
+                    <input type="number" name="duration" />
+                </label>
+                <label>
+                    <span>Date</span>
+                    <input type="date" name="date" placeholder="yyyy-mm-dd"/>
+                </label>
+                <button type="submit">Log it</button>
+            </form>
+        </section>
     </main>
     <footer>
     
